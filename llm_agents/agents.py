@@ -1,11 +1,6 @@
 import asyncio
 import subprocess
 
-import ollama
-from typing import List
-
-import pandas as pd
-
 
 async def execute_prompt(prompt):
     """
@@ -25,7 +20,6 @@ async def execute_prompt(prompt):
     except subprocess.CalledProcessError as e:
         return f"Error: {e.stderr.strip()}"
 
-BASE_URL = "https://gateway.multiversx.com/address"
 
 async def fetch_address_details(host: str, address: str) -> dict:
     """
