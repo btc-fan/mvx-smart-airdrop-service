@@ -23,12 +23,13 @@ PROXY_CHAIN_SIMULATOR = "http://localhost:8085"
 
 
 # Change this for other network
-PROXY_URL = PROXY_CHAIN_SIMULATOR
-DEFAULT_PROXY = PROXY_CHAIN_SIMULATOR
+PROXY_URL = PROXY_PUBLIC_DEVNET
+DEFAULT_PROXY = PROXY_PUBLIC_DEVNET
 # Get Chain ID
 provider = ProxyNetworkProvider(PROXY_URL)
 # CHAIN_ID = "1"  # Internal Test Network
-CHAIN_ID = "chain"  # Chain Simulator
+# CHAIN_ID = "chain"  # Chain Simulator
+CHAIN_ID = "D"  # Chain Simulator
 METACHAIN_ID = "4294967295"
 
 

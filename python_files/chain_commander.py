@@ -3,9 +3,9 @@ import time
 
 import requests
 
-from config import DEFAULT_PROXY, rounds_per_epoch
-from constants import *
-from logger import logger
+from python_files.config import DEFAULT_PROXY, rounds_per_epoch
+from python_files.constants import *
+from python_files.logger import logger
 
 
 def get_status_of_tx(tx_hash: str) -> str:

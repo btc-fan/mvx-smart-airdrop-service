@@ -7,8 +7,8 @@ from multiversx_sdk import UserPEM
 from multiversx_sdk.core.address import Address
 from multiversx_sdk.wallet.user_signer import UserSigner
 
-from config import DEFAULT_PROXY, proxy_default
-from logger import logger
+from python_files.config import DEFAULT_PROXY, proxy_default
+from python_files.logger import logger
 
 
 class Wallet:

@@ -25,7 +25,7 @@ else:
 
 # Project Paths
 PROJECT_FOLDER = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-WALLETS_FOLDER = os.path.join(PROJECT_FOLDER, "mvx-smart-airdrop-service", "wallets")
+WALLETS_FOLDER = os.path.join(PROJECT_FOLDER, "wallets")
 VALIDATOR_KEYS_FOLDER = os.path.join(PROJECT_FOLDER, "data", "validator_keys")
 SMART_CONTRACTS_FOLDER = os.path.join(PROJECT_FOLDER, "data", "smart_contracts")
 
