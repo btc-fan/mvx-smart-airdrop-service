@@ -2,11 +2,30 @@ import json
 from quart import Quart, request, jsonify
 from quart_cors import cors
 from llm_agents.agents import fetch_address_details, fetch_esdt_details, validate_bech32_addresses, \
-    create_multi_esdt_transfer_transaction
+    create_multi_esdt_transfer_transaction, user_prompt_to_json
 
 app = Quart("SmartAirdrop")
 app = cors(app)
 
+
+@app.route('/user_prompt', methods=['OPTIONS', 'POST'])
+async def user_prompt():
+    if request.method == 'OPTIONS':
+        return _build_cors_preflight_response()
+    try:
+        # Get input parameters from the POST request
+        data = await request.get_json()
+        print("Received input data:", data)
+        u_prompt = data.get("user_prompt")
+        print(u_prompt)
+
+        json_user_prompt = await user_prompt_to_json(u_prompt)
+
+        return json_user_prompt
+
+    except Exception as e:
+        print("Unexpected error:", str(e))
+        return jsonify({"error": f"Unexpected error: {str(e)}"}), 500
 
 @app.route('/airdrop', methods=['OPTIONS', 'POST'])
 async def airdrop():
@@ -112,4 +131,4 @@ def _build_cors_preflight_response():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True, host='0.0.0.0', port=8095)

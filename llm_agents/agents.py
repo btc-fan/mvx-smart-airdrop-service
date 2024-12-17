@@ -203,3 +203,29 @@ async def create_multi_esdt_transfer_transaction(
     except Exception as e:
         print(f"Error creating transaction: {str(e)}")
         return {"error": f"Failed to create transaction: {str(e)}"}
+
+
+
+async def user_prompt_to_json(user_prompt: str) -> any:
+    """
+    Will convert the user prompt in a json format
+    """
+    prompt = f"""
+    Convert the following prompt into a valid JSON format. The `chainId` should always be "D".
+    Example input: "Send 150 TKN-1a2b3c to the following addresses: erd1ysrfrcysz54460rhmvqm43rn7jmugkh2zl5eahmywn9yap55hfkq0sjqzy, erd1smmxpkzp0s9udp28yxd9wvxrjl58267h3glq20pctxdk0h747fpq8lal97"
+    Example output:
+    {{
+      "chainId": "D",
+      "tokenIdentifier": "TKN-1a2b3c",
+      "amount": 150,
+      "sender": "erd138cn6lupfdgn3euh29acrrnp5l8g5vy9ax249zp0j8wd03k3y42qttsz8g",
+      "receivers": [
+        "erd1ysrfrcysz54460rhmvqm43rn7jmugkh2zl5eahmywn9yap55hfkq0sjqzy",
+        "erd1smmxpkzp0s9udp28yxd9wvxrjl58267h3glq20pctxdk0h747fpq8lal97"
+      ]
+    }}
+    
+    Only return the JSON, without any additional explanation. For the user's prompt: "{user_prompt}", generate the corresponding JSON output without json markers.
+    """
+    response = await execute_prompt(prompt)
+    return response
