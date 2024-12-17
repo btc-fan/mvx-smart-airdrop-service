@@ -1,19 +1,16 @@
-import time
 from pathlib import Path
 
 from multiversx_sdk import Transaction, TransactionsConverter, Token, TokenTransfer, TransferTransactionsFactory, \
-    SmartContractTransactionsFactory, Address, UserPEM, UserSigner
+    SmartContractTransactionsFactory, Address
 from multiversx_sdk.abi import AddressValue, BigUIntValue
 
 from python_files.config import CHAIN_ID, config, transaction_computer, provider
 from python_files.constants import WALLETS_FOLDER, GAS_PRICE
-from python_files.chain_commander import is_chain_online, force_move_to_epoch
 from python_files.wallet import Wallet
 
 factory = TransferTransactionsFactory(config)
 sc_factory = SmartContractTransactionsFactory(config)
 transaction_converter = TransactionsConverter()
-
 
 # Initialize wallets
 sender_wallet = Wallet(Path(WALLETS_FOLDER + "/sd_2_wallet_key_2.pem"))
@@ -24,6 +21,12 @@ relayer_wallet = Wallet(Path(WALLETS_FOLDER + "/sd_1_wallet_key_3.pem"))
 def test_create_move_balance_transactions():
 
     TRANSFER_AMOUNT = 1  # 0.000000000000000001 xEGLD
+    sender_address = Address.new_from_bech32("erd1smmxpkzp0s9udp28yxd9wvxrjl58267h3glq20pctxdk0h747fpq8lal97")
+    account_on_network = provider.get_account(sender_address)
+    print("Nonce:", account_on_network.nonce)
+    print("Balance:", account_on_network.balance)
+    print("Balance:", account_on_network.balance)
+
 
     # Create 3 transfer transactions
     for i in range(3):
