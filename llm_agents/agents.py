@@ -164,12 +164,18 @@ async def create_multi_esdt_transfer_transaction(
         - ESDT Amount: {esdt_amount_hex}
         - Sender: {sender_hex}
         - Receivers: {receiver_hexes}
-        - Amounts: {amounts_hex}
+        - Amounts: {['{:02x}'.format(int(amount, 16)).zfill(2) for amount in amounts_hex]}
 
         Construct the 'data' field in the following format:
         MultiESDTNFTTransfer@<contract_address>@02@5745474c442d613238633539@@<wrapped_egld>@<token_identifier>@@<esdt_amount>@736d61727453617665@<service_address>@<receiver_1>@<amount_1>@<receiver_2>@<amount_2>...
 
-        Include all receivers and amounts sequentially. No additional fields or text should be included.
+        Rules:
+        - Always maintain `@@` between values where indicated.
+        - Pad all hex numbers to ensure they have an odd number of characters by adding a leading `0` if necessary. 
+          For example, `13e` becomes `013e`.
+        - Pad all amounts (e.g., <amount_1>, <amount_2>) to an even number of hex characters to maintain two-character representation for values like `1` (e.g., `01`).
+
+        Only return the constructed 'data' field, no explanations or additional text.
         """
         # Execute the AI prompt
         response = await execute_prompt(prompt)
@@ -221,15 +227,16 @@ async def user_prompt_to_json(user_prompt: str) -> any:
 
     Example output:
     {{
-      "tokenIdentifier": "BUILDO-22c0a5",
-      "amount": 1,
+      "tokenIdentifier": "VALUE",
+      "amount": VALUE,
       "receivers": [
-        "erd1a9wdz7pdyttectxjntg4z83unkal7pj5ycfem5ynzh49j8st4mas52yhel",
-        "erd139adwtgs4smel4rmqlphcxp8q8jr5qsxrfwlluhzvds3elk3hm2qq3vnnc"
+        "VALUE",
+        "VALUE"
       ]
     }}
     
     Only return the JSON, without any additional explanation. For the user's prompt: "{user_prompt}", generate the corresponding JSON output without json markers.
     """
     response = await execute_prompt(prompt)
+    print("response: " + response)
     return response

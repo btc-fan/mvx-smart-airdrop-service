@@ -9,27 +9,7 @@ from llm_agents.agents import fetch_address_details, fetch_esdt_details, validat
 from python_files.config import provider
 
 app = Quart("SmartAirdrop")
-app = cors(app)
-
-
-@app.route('/user_prompt', methods=['OPTIONS', 'POST'])
-async def user_prompt():
-    if request.method == 'OPTIONS':
-        return _build_cors_preflight_response()
-    try:
-        # Get input parameters from the POST request
-        data = await request.get_json()
-        print("Received input data:", data)
-        u_prompt = data.get("user_prompt")
-        print(u_prompt)
-
-        json_user_prompt = await user_prompt_to_json(u_prompt)
-
-        return json_user_prompt
-
-    except Exception as e:
-        print("Unexpected error:", str(e))
-        return jsonify({"error": f"Unexpected error: {str(e)}"}), 500
+app = cors(app, allow_origin="*")
 
 @app.route('/airdrop', methods=['OPTIONS', 'POST'])
 async def airdrop():
@@ -41,7 +21,7 @@ async def airdrop():
         data = await request.get_json()
         print("Received input data:", data)
 
-        u_prompt = data.get("inputMessage")
+        u_prompt = data.get("InputMessage")
         print(u_prompt)
         json_user_prompt = await user_prompt_to_json(u_prompt)
         json_user_prompt = json.loads(json_user_prompt)
@@ -53,14 +33,14 @@ async def airdrop():
 
 
 
-        sender = data.get("sender", "")
+        sender = data.get("Sender", "")
         # receivers = ["erd1ysrfrcysz54460rhmvqm43rn7jmugkh2zl5eahmywn9yap55hfkq0sjqzy", "erd1smmxpkzp0s9udp28yxd9wvxrjl58267h3glq20pctxdk0h747fpq8lal97"]
 
         # token_identifier = "TKN-1a2b3c"
         token_identifier = json_user_prompt.get("tokenIdentifier", "")
-        contract_address = data.get("contractAddress", "")
-        service_address = data.get("serviceAddress", "")
-        chain_id = data.get("chainId", "")
+        contract_address = data.get("ContractAddress", "")
+        service_address = data.get("ServiceAddress", "")
+        chain_id = data.get("ChainId", "")
         host = "https://devnet-gateway.multiversx.com"
         # print(f"Host: {host}, Sender: {sender}, Receivers: {receivers}, Token: {token_identifier}, Amount: {amount}")
 
@@ -92,7 +72,7 @@ async def airdrop():
         #     return jsonify({"error": "Sender's EGLD balance is insufficient (must be greater than 0)"}), 400
 
         # Fetch ESDT Details
-        print(f"Fetching ESDT details for {sender}...")
+        print(f"Fetching ESDT details for {sender}")
         esdt_details = await fetch_esdt_details(host, sender)
         print("Fetched ESDT Details:", esdt_details)
 
@@ -128,13 +108,10 @@ async def airdrop():
             return jsonify({"error": transaction["error"]}), 500
 
         # Prepare response
-        response_data = {
-            "status": "success",
-            "transaction": transaction,
-        }
-        print("Final Response Data:", response_data)
+        transaction
+        print("Final Response Data:", transaction)
 
-        return jsonify(response_data)
+        return transaction
 
     except Exception as e:
         print("Unexpected error:", str(e))
