@@ -167,7 +167,7 @@ async def create_multi_esdt_transfer_transaction(
         - Amounts: {amounts_hex}
 
         Construct the 'data' field in the following format:
-        MultiESDTNFTTransfer@<contract_address>@02@<token_identifier>@<wrapped_egld>@<esdt_amount>@<service_address>@736d61727453617665@<receiver_1>@<amount_1>@<receiver_2>@<amount_2>...
+        MultiESDTNFTTransfer@<contract_address>@02@5745474c442d613238633539@@<wrapped_egld>@<token_identifier>@@<esdt_amount>@736d61727453617665@<service_address>@<receiver_1>@<amount_1>@<receiver_2>@<amount_2>...
 
         Include all receivers and amounts sequentially. No additional fields or text should be included.
         """
