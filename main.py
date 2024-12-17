@@ -1,8 +1,12 @@
 import json
+
+from multiversx_sdk import Address
 from quart import Quart, request, jsonify
 from quart_cors import cors
 from llm_agents.agents import fetch_address_details, fetch_esdt_details, validate_bech32_addresses, \
     create_multi_esdt_transfer_transaction
+
+from python_files.config import provider
 
 app = Quart("SmartAirdrop")
 app = cors(app)
@@ -23,7 +27,7 @@ async def airdrop():
         amount = int(data.get("amount", 0))
         contract_address = data.get("contractAddress", "")
         chain_id = data.get("chainId", "")
-        host = "https://testnet-gateway.multiversx.com"
+        host = "https://devnet-gateway.multiversx.com"
         print(f"Host: {host}, Sender: {sender}, Receivers: {receivers}, Token: {token_identifier}, Amount: {amount}")
 
         # Validate addresses (sender and receivers)
@@ -41,12 +45,15 @@ async def airdrop():
         # print(f"Fetching address details for {sender}...")
         # address_details = await fetch_address_details(host, sender)
         # print("Fetched Address Details:", address_details)
+        sender_address = Address.new_from_bech32(sender)
+        sender_on_network = provider.get_account(sender_address)
 
         address_details = {'data': {'account': {'address': 'erd138cn6lupfdgn3euh29acrrnp5l8g5vy9ax249zp0j8wd03k3y42qttsz8g', 'nonce': 1025, 'balance': '597563760000000000', 'username': '', 'code': '', 'codeHash': None, 'rootHash': '3Zt4TxfQ9P3viFo5yJejXfdsZ6RZeoftLsKb4GSyYZ8=', 'codeMetadata': None, 'developerReward': '0', 'ownerAddress': ''}, 'blockInfo': {'nonce': 967104, 'hash': 'af05df13cd04ef3c3f5cf0b65c748434fb3e6f3876ee21e93437fb6679555937', 'rootHash': '33f564b8c45f90a49f49a95b0f23217abd3d10c3230dad138f62a356a0f42bd2'}}, 'error': '', 'code': 'successful'}
 
         # Validate balance in address details
-        account_data = address_details.get("data", {}).get("account", {})
-        address_balance = int(account_data.get("balance", "0"))
+        # account_data = address_details.get("data", {}).get("account", {})
+        # address_balance = int(account_data.get("balance", "0"))
+        address_balance = sender_on_network.balance
         print(f"Sender's EGLD Balance: {address_balance}")
 
         if address_balance <= 0:
@@ -54,12 +61,12 @@ async def airdrop():
             return jsonify({"error": "Sender's EGLD balance is insufficient (must be greater than 0)"}), 400
 
         # Fetch ESDT Details
-        # print(f"Fetching ESDT details for {sender}...")
-        # esdt_details = await fetch_esdt_details(host, sender)
-        # print("Fetched ESDT Details:", esdt_details)
+        print(f"Fetching ESDT details for {sender}...")
+        esdt_details = await fetch_esdt_details(host, sender)
+        print("Fetched ESDT Details:", esdt_details)
 
         # Parse the ESDT data
-        esdt_details = {'data': {'blockInfo': {'hash': '16074bffd3900da8428e41c759b3f89f707b4db5ceda36c7962f432cf1416991', 'nonce': 967105, 'rootHash': '33f564b8c45f90a49f49a95b0f23217abd3d10c3230dad138f62a356a0f42bd2'}, 'esdts': {'SNOW-13d1ef': {'balance': '99999999969000', 'tokenIdentifier': 'SNOW-13d1ef', 'type': 'FungibleESDT'}, 'TKN-1a2b3c': {'balance': '100000000000000', 'tokenIdentifier': 'SNOW-896a35', 'type': 'FungibleESDT'}, 'SNOW-ed984b': {'balance': '100000000000000', 'tokenIdentifier': 'SNOW-ed984b', 'type': 'FungibleESDT'}, 'WINTER-994654': {'balance': '9000000000000000', 'tokenIdentifier': 'WINTER-994654', 'type': 'FungibleESDT'}}}, 'error': '', 'code': 'successful'}
+        # esdt_details = {'data': {'blockInfo': {'hash': '16074bffd3900da8428e41c759b3f89f707b4db5ceda36c7962f432cf1416991', 'nonce': 967105, 'rootHash': '33f564b8c45f90a49f49a95b0f23217abd3d10c3230dad138f62a356a0f42bd2'}, 'esdts': {'SNOW-13d1ef': {'balance': '99999999969000', 'tokenIdentifier': 'SNOW-13d1ef', 'type': 'FungibleESDT'}, 'TKN-1a2b3c': {'balance': '100000000000000', 'tokenIdentifier': 'SNOW-896a35', 'type': 'FungibleESDT'}, 'SNOW-ed984b': {'balance': '100000000000000', 'tokenIdentifier': 'SNOW-ed984b', 'type': 'FungibleESDT'}, 'WINTER-994654': {'balance': '9000000000000000', 'tokenIdentifier': 'WINTER-994654', 'type': 'FungibleESDT'}}}, 'error': '', 'code': 'successful'}
 
         esdt_data = esdt_details.get("data", {}).get("esdts", {})
         print("Parsed ESDT Data:", esdt_data)
@@ -76,13 +83,14 @@ async def airdrop():
             print("Insufficient token balance for the airdrop.")
             return jsonify({"error": "Insufficient token balance for the airdrop"}), 400
 
+
         # Create MultiESDTNFTTransfer Transaction
         print("Creating MultiESDTNFTTransfer transaction...")
         esdt_amount = 7777
-        service_address = "erd1h7yfpy2zzc4g0jl0j7zyg7ggl80g9a5mmssckv9r3n0a7s868h0q4dszch"
+        service_address = "erd15uchpdmkn90qxd9add6npnst3mckkapkq7zmn5l8rlkwnvk7k0ese9q8z5"
         # contract_address = "erd1tvz9hk4lzsn57rltj7r06n9vjxtpr30f3n52tujuvznl37zhd8vq5uzxxx"
         amounts = [555,999]
-        transaction = await create_multi_esdt_transfer_transaction(chain_id=chain_id,esdt_amount=esdt_amount, service_address=service_address, amounts=amounts, sender=sender, receivers=receivers, token_identifier=token_identifier, contract_address=contract_address, nonce=0)
+        transaction = await create_multi_esdt_transfer_transaction(chain_id=chain_id,esdt_amount=esdt_amount, service_address=service_address, amounts=amounts, sender=sender, receivers=receivers, token_identifier=token_identifier, contract_address=contract_address, nonce=sender_on_network.nonce)
 
         if "error" in transaction:
             print("Failed to create transaction:", transaction["error"])
