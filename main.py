@@ -53,7 +53,7 @@ async def airdrop():
 
 
 
-        sender = json_user_prompt.get("sender", "")
+        sender = data.get("sender", "")
         # receivers = ["erd1ysrfrcysz54460rhmvqm43rn7jmugkh2zl5eahmywn9yap55hfkq0sjqzy", "erd1smmxpkzp0s9udp28yxd9wvxrjl58267h3glq20pctxdk0h747fpq8lal97"]
 
         # token_identifier = "TKN-1a2b3c"
@@ -76,7 +76,7 @@ async def airdrop():
 
 
         # # Fetch Address Details
-        print(f"Fetching address details for {sender}...")
+        print(f"Fetching address details for {sender}")
         address_details = await fetch_address_details(host, sender)
         print("Fetched Address Details:", address_details)
 
@@ -85,11 +85,11 @@ async def airdrop():
         # Validate balance in address details
         account_data = address_details.get("data", {}).get("account", {})
         address_balance = int(account_data.get("balance", "0"))
-        nonce = address_details.get("data", {}).get("nonce", {})
+        nonce = address_details.get("data").get("account").get("nonce")
 
-        if address_balance <= 0:
-            print("Insufficient EGLD balance.")
-            return jsonify({"error": "Sender's EGLD balance is insufficient (must be greater than 0)"}), 400
+        # if address_balance <= 0:
+        #     print("Insufficient EGLD balance.")
+        #     return jsonify({"error": "Sender's EGLD balance is insufficient (must be greater than 0)"}), 400
 
         # Fetch ESDT Details
         print(f"Fetching ESDT details for {sender}...")
