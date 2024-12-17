@@ -1,4 +1,3 @@
-from llm_agents.agents import execute_prompt
 from multiversx_sdk import Address
 
 

@@ -2,6 +2,9 @@ import asyncio
 import json
 import subprocess
 
+from main2 import bech32_to_hex
+from utils.data_converstion import string_to_hex, int_to_hex
+
 
 async def execute_prompt(prompt: str) -> str:
     """
@@ -120,60 +123,83 @@ async def fetch_esdt_details(host: str, address: str) -> dict:
         return {"error": "Failed to parse ESDT details response."}
 
 
-async def create_multi_esdt_transfer_transaction(sender, receivers, token_identifier, wegld_amount, esdt_amount, contract_address, nonce, servis_address, amounts):
+async def create_multi_esdt_transfer_transaction(
+        chain_id, sender, receivers, token_identifier, esdt_amount, contract_address, nonce, service_address, amounts
+):
     """
     Creates a MultiESDTNFTTransfer transaction JSON using an AI agent.
+    Dynamically generates the data field for all receivers and amounts.
     """
     try:
-        # Refined prompt for the AI agent
+        # Convert Bech32 fields to Hex
+        contract_hex = bech32_to_hex(contract_address)
+        service_hex = bech32_to_hex(service_address)
+        sender_hex = bech32_to_hex(sender)
+        receiver_hexes = [bech32_to_hex(receiver) for receiver in receivers]
+        gas_limit = max(1_500_000 * len(receivers), 10_000_000)
+        gas_price = 1000000000
+
+        if not contract_hex or not service_hex or not sender_hex or None in receiver_hexes:
+            return {"error": "Failed to convert Bech32 to Hex for one or more addresses"}
+
+        # Calculate wrapped EGLD dynamically
+        wrapped_egld = int(0.01 * len(receivers) * (10 ** 18))
+        wrapped_egld_hex = int_to_hex(wrapped_egld)
+
+        # Convert token identifier and amounts to Hex
+        token_identifier_hex = string_to_hex(token_identifier)
+        esdt_amount_hex = int_to_hex(int(esdt_amount))
+        amounts_hex = [int_to_hex(int(amount)) for amount in amounts]
+
+        if None in [token_identifier_hex, wrapped_egld_hex, esdt_amount_hex] or None in amounts_hex:
+            return {"error": "Failed to convert values to Hex"}
+
+        # Generate the data dynamically using AI agents
         prompt = f"""
-        You are tasked with generating a JSON array of transactions for a MultiESDTNFTTransfer operation. 
-        Each transaction must strictly adhere to the following schema:
-        1. The array should contain one transaction object per receiver.
-        2. Each transaction object must include the following fields:
-           - "chainId": Always set to "D".
-           - "data": The transaction data in the format:
-             "MultiESDTNFTTransfer@{contract_address}@02@5745474c442d613238633539@@{wegld_amount}@{token_identifier}@@{esdt_amount}@{servis_address}@{receivers[0]}@{amounts[0]}@{receivers[1]}@{amounts[1]}"
-           - "gasLimit": Set to 1,500,000 multiplied by the number of receivers ({len(receivers)}).
-           - "gasPrice": Set to 1000000000.
-           - "nonce": The starting nonce is {nonce} and increments by 1 for each transaction.
-           - "receiver": The Bech32 address of the receiver.
-           - "sender": The Bech32 address of the sender ({sender}).
-           - "value": Always set to "0".
-           - "version": Set to 2.
-           - "options": Set to 0.
+        You are tasked with generating a MultiESDTNFTTransfer transaction.
+        - Use the contract address: {contract_hex}
+        - Use the service address: {service_hex}
+        - Token Identifier: {token_identifier_hex}
+        - Wrapped EGLD: {wrapped_egld_hex}
+        - ESDT Amount: {esdt_amount_hex}
+        - Sender: {sender_hex}
+        - Receivers: {receiver_hexes}
+        - Amounts: {amounts_hex}
 
-        Fields to exclude:
-        - Remove "receiverUsername" and "senderUsername".
-        - Remove "signature".
-        - Remove "guardian" and "guardianSignature".
+        Construct the 'data' field in the following format:
+        MultiESDTNFTTransfer@<contract_address>@02@<token_identifier>@<wrapped_egld>@<esdt_amount>@<service_address>@736d61727453617665@<receiver_1>@<amount_1>@<receiver_2>@<amount_2>...
 
-        Generate the JSON array with one transaction object per receiver, ensuring:
-        - Each transaction includes valid values for the required fields.
-        - The "data" field is unique for each receiver.
-        - The nonce increments sequentially starting from {nonce}.
-
-        Inputs:
-        - Sender: {sender}
-        - Contract Address: {contract_address}
-        - Token Identifier: {token_identifier}
-        - Amount per Transfer: {wegld_amount}
-        - Receivers: {receivers}
-
-        Respond with only the JSON array, no explanations or extra text.
+        Include all receivers and amounts sequentially. No additional fields or text should be included.
         """
-
         # Execute the AI prompt
         response = await execute_prompt(prompt)
-        print("AI Generated Transaction JSON:", response)
+        data_field = response.strip()
 
-        # Parse the JSON response from the AI
-        transaction_json = json.loads(response)
+        # Construct the transaction object
+        transaction = {
+            "nonce": nonce,
+            "value": "0",
+            "receiver": sender,  # Contract interaction typically uses sender as receiver
+            "sender": sender,
+            "senderUsername": "",
+            "receiverUsername": "",
+            "gasPrice": gas_price,
+            "gasLimit": gas_limit,
+            "data": data_field,
+            "chainID": chain_id,
+            "version": 2,
+            "options": 0,
+            "guardian": "",
+            "signature": "",
+            "guardianSignature": "",
+            "relayer": "",
+            "relayerSignature": ""
+        }
 
-        return transaction_json
-    except json.JSONDecodeError:
-        print("Error: Failed to parse AI response into JSON.")
-        return {"error": "Failed to parse AI response into JSON."}
+        # Log the generated transaction
+        print("Generated Transaction:", transaction)
+        return transaction
+
     except Exception as e:
         print(f"Error creating transaction: {str(e)}")
         return {"error": f"Failed to create transaction: {str(e)}"}

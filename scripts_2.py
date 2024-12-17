@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from multiversx_sdk import Transaction, TransactionsConverter, Token, TokenTransfer, TransferTransactionsFactory, \
+from multiversx_sdk import TransactionsConverter, Token, TokenTransfer, TransferTransactionsFactory, \
     SmartContractTransactionsFactory, Address
 from multiversx_sdk.abi import AddressValue, BigUIntValue
 
